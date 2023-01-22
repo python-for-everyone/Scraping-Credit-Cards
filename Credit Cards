@@ -1,1 +1,58 @@
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+import time
+from selenium.common.exceptions import NoSuchElementException
+
+from openpyxl import Workbook
+wb = Workbook()
+
+ws2 = wb.create_sheet(0)
+ws2.title = "Credit Cards"
+
+ws2['A1'] = "Credit Card Name"
+ws2['B1'] = "Representative APR"
+
+driver = webdriver.Chrome(executable_path=ChromeDriverManager().install())
+
+driver.get('https://www.finder.com/uk/credit-cards')
+
+time.sleep(10) # you can change time.sleep according to your needs. I recommend at least 5 seconds
+
+count = 2
+except_counter = 3
+
+
+# General concept: There are always 12 items listed on one page. 
+I used a for loop to iterate over the 12 item. When the 12th item of the page has been reached, the code clicks on the next button. 
+
+while True:
+
+    for i in range(1,12):
+        try:
+            element_card_name = driver.find_element(By.CSS_SELECTOR,'#comparison-table-0000000000 > tbody > tr:nth-child('+str(i)+') > td.comparison-table__name > div > a')
+        
+        except NoSuchElementException: #  There were card names that didnt have a hyperlink in the code element, so it is searching.
+            element_card_name = driver.find_element(By.CSS_SELECTOR,'#comparison-table-0000000000 > tbody > tr:nth-child('+str(except_counter)+') > td.comparison-table__name > div > span')
+            except_counter= except_counter + 3
+            
+        element_apr = driver.find_element(By.CSS_SELECTOR,'#comparison-table-0000000000 > tbody > tr:nth-child('+str(i)+') > td:nth-child(6) > div')
+        
+        ws2['A'+str(count)] = element_card_name.text
+        
+        ws2['B' + str(count)] = element_apr.text
+        
+        count = count + 1
+        
+        wb.save("/Users/Linus/Downloads/Credit_Cards.xlsx") # everything is saved in the tab "Credit Cards". Please use a different save path (your own). 
+        Users/XXX is for mac. Windows is different!
+       
+       if i == 11:
+            time.sleep(5)
+            
+            driver.execute_script("window.scrollBy(0, 3000);") # scroll downs webpage so that "Next" Button can be clicked (Button needs to be visible)
+            
+            driver.find_element(By.CSS_SELECTOR,"#comparison-table > div.contentWrapper.tableWithFilters__contentWrapper > div.tableWithFilters__table.content > div.js-comparison-calculator.comparison-calculator.comparison-calculator--paginationNav > section > form > div.comparison-table__paginationContainer > div > button.luna-button.comparison-table__paginationNav-next").click()
+            
+            time.sleep(5)
 
